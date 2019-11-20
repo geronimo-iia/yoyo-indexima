@@ -9,7 +9,7 @@ Versions following [Semantic Versioning](https://semver.org/)
 
 ## Overview
 
-Indexima migration schema based on yoyo and pyhive.
+Indexima migration schema based on [yoyo](https://ollycope.com/software/yoyo/latest/) and [pyhive](https://pypi.org/project/PyHive/).
 
 
 > The little story
