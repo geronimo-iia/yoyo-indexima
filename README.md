@@ -12,6 +12,20 @@ Versions following [Semantic Versioning](https://semver.org/)
 Indexima migration schema based on yoyo and pyhive.
 
 
+> The little story
+>
+>In the land of database migration tool, i have tried:
+>
+>- flyway
+>- liquidbase with hive extention
+>
+>Both either did not support hive (as flyway), or indexima did not fully compliant with hive (wich cause probleme with liquidbase)
+>
+>So I try to found a module not too complex in order to migrate our indexima schema in a safe way.
+>
+>In this early release, I just trying to do the job.
+
+
 ## Setup
 
 ### Requirements
@@ -34,13 +48,15 @@ $ poetry add yoyo-indexima
 
 ## Usage
 
+### Hive connection
+
+1. backend ui must start with ```indexima://```
+2. If you have trouble to obtain an hive connection, please read http://dwgeek.com/guide-connecting-hiveserver2-using-python-pyhive.html/
+
+
+## Migration
+
 You could see a complete sample under 'example' folder.
-
-If your migrations script are under directory ```migration folder```:
-
-Note:
-- If you have trouble to obtain an hive connection, please read http://dwgeek.com/guide-connecting-hiveserver2-using-python-pyhive.html/
-- backend ui must start with ```indexima://```
 
 
 ### using python client
@@ -55,8 +71,14 @@ example:
 yoyo_indexima  apply  -s $(pwd)/example/migrations/ -u "indexima://admin:super_password@localhost:10000/default"
 ```
 
+Commands:
+
+- show: pring pending migration
+- apply: apply ending migration
 
 ### within python code
+
+If your migrations script are under directory ```migration``` folder
 
 ```python
 import os
@@ -89,4 +111,9 @@ if __name__ == "__main__":
 
 See [Contributing](https://geronimo-iia.github.io/yoyo-indexima/contributing)
 
+## Next step
 
+- production usage in order to see how this tool made the job
+- more documentation in code
+- purpose few change in 'yoyo' like set all SQL command on Backend class
+- ...
