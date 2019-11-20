@@ -62,6 +62,7 @@ You could see a complete sample under 'example' folder.
 ### using python client
 
 ```
+yoyo_indexima
 usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
 ```
 
