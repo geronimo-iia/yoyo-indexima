@@ -53,6 +53,12 @@ $ poetry add yoyo-indexima
 1. backend ui must start with ```indexima://```
 2. If you have trouble to obtain an hive connection, please read http://dwgeek.com/guide-connecting-hiveserver2-using-python-pyhive.html/
 
+Note: 
+If you using python in docker, you should install :
+```
+apt-get update -qq
+apt-get install -qqy gcc libsasl2-dev libsasl2-2 libsasl2-modules-gssapi-mit 
+```
 
 ## Migration
 
