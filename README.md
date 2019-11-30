@@ -9,7 +9,7 @@ Versions following [Semantic Versioning](https://semver.org/)
 
 ## Overview
 
-Indexima migration schema based on [yoyo](https://ollycope.com/software/yoyo/latest/) and [pyhive](https://pypi.org/project/PyHive/).
+[Indexima](https://indexima.com/) migration schema based on [yoyo](https://ollycope.com/software/yoyo/latest/) and [pyhive](https://pypi.org/project/PyHive/).
 
 
 > The little story
@@ -81,7 +81,7 @@ yoyo_indexima  apply  -s $(pwd)/example/migrations/ -u "indexima://admin:super_p
 Commands:
 
 - show: pring pending migration
-- apply: apply ending migration
+- apply: apply pending migration
 
 ### within python code
 
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     backend = get_backend('indexima://admin:super_password@localhost:10000/default')
 
     # Read migrations folder
-    migrations = read_migrations(os.path.join(os.getcwd(), 'migrations'))
+    migrations = read_migrations(os.path.join(os.getcwd(), 'migrations/**/*'))
     print(f'migrations: {migrations}')
     if migrations:
         # apply migration
@@ -107,6 +107,14 @@ if __name__ == "__main__":
             backend.apply_migrations(backend.to_apply(migrations))
 ```
 
+### Management table
+
+This tool create in your `default` schema:
+
+- a log table: 'yoyo_log'
+- a lock_table: 'yoyo_lock'
+- a version table: 'yoyo_version'
+- a migration table: 'yoyo_migration'
 
 
 ## License
