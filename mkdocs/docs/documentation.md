@@ -23,8 +23,6 @@ under mkdocs folder:
 Main target: 'docs'
 
 - call 'mkdocs-site':
-    - call 'mkdocs-uml': Generate UML Diagram
-    - call 'mkdocs-api': Generate API documentation
     - call 'mkdocs-md': Copy standard document
     - Build web site with mkdocs tool
     - move generated website content into '/docs' folder in order to expose with github page project
@@ -41,23 +39,6 @@ Cleaning target: '.clean-docs'
 DOCS_PATH := mkdocs/docs
 SITE_PATH := mkdocs/site
 
-mkdocs-uml: $(DOCS_PATH)/uml ## Generate UML Diagram
-$(DOCS_PATH)/uml: $(MODULES)
-	@ mkdir -p $(DOCS_PATH)/uml
-	@ $(RUN) pyreverse $(PACKAGE) -p $(PACKAGE) -a 1 -f ALL -o png --ignore tests
-	@ mv -f packages_$(PACKAGE).png $(DOCS_PATH)/uml/packages.png
-	@ mv -f classes_$(PACKAGE).png $(DOCS_PATH)/uml/classes.png
-
-
-mkdocs-api: $(DOCS_PATH)/api ## Generate API documentation
-$(DOCS_PATH)/api: $(MODULES)
-	@ mkdir -p $(DOCS_PATH)/api
-	@ cd $(DOCS_PATH)/api; \
-		PYTHONPATH=$(shell pwd); \
-		$(RUN) pydocmd simple $(PACKAGE)+ > index.md
-# Add here all other package generation
-# PYTHONPATH=$(shell pwd) is a workaround to https://github.com/NiklasRosenstein/pydoc-markdown/issues/30
-
 
 MK_FILES = $(DOCS_PATH)/index.md $(DOCS_PATH)/license.md $(DOCS_PATH)/changelog.md $(DOCS_PATH)/code_of_conduct.md
 
@@ -71,7 +52,7 @@ $(DOCS_PATH)/changelog.md: CHANGELOG.md
 $(DOCS_PATH)/code_of_conduct.md: CODE_OF_CONDUCT.md
 	@ cp -f CODE_OF_CONDUCT.md $(DOCS_PATH)/code_of_conduct.md
 
-mkdocs-site: mkdocs/mkdocs.yml mkdocs-uml mkdocs-api mkdocs-md ## Build Documentation Site
+mkdocs-site: mkdocs/mkdocs.yml mkdocs-md ## Build Documentation Site
 	@ cd mkdocs; \
 	  $(RUN) mkdocs build
 	@ rm -rf docs/
