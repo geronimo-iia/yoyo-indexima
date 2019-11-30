@@ -3,16 +3,18 @@ import argparse
 import logging
 import os
 
-from yoyo import get_backend, read_migrations
+from yoyo import read_migrations
+from yoyo.backends import DatabaseBackend
+from yoyo.migrations import MigrationList
 
-from yoyo_indexima.backend import IndeximaBackend, register_indexima
+from yoyo_indexima.backend import get_backend
 from yoyo_indexima.logger import init_root_logger
 
 
 logger = logging.getLogger('yoyo_indexima.cli')
 
 
-def show_migration(backend, migrations):
+def show_migration(backend: DatabaseBackend, migrations: MigrationList):
     logger.info(f"{'-'*80}")
     logger.info('Pending Migrations')
     for _migration in backend.to_apply(migrations):
@@ -20,7 +22,7 @@ def show_migration(backend, migrations):
     logger.info(f"{'-'*80}")
 
 
-def apply_migration(backend, migrations):
+def apply_migration(backend: DatabaseBackend, migrations: MigrationList):
     logger.info(f"{'-'*80}")
     logger.info('Applying Migrations')
     with backend.lock():
@@ -45,9 +47,8 @@ def main():
     args = parser.parse_args()
 
     init_root_logger()
-    register_indexima()
 
-    backend = get_backend(uri=args.uri, migration_table=IndeximaBackend.migration_table)
+    backend: DatabaseBackend = get_backend(uri=args.uri)
 
     source = args.source if args.source else os.path.join(os.getcwd(), 'migrations')
 
