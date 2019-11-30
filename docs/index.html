@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.2">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.3">
     
     
       
@@ -330,6 +330,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#management-table" class="md-nav__link">
+    Management table
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -547,6 +554,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#management-table" class="md-nav__link">
+    Management table
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -598,7 +612,7 @@
 <a href="https://pypi.org/project/yoyo-indexima"><img alt="PyPI License" src="https://img.shields.io/pypi/l/yoyo-indexima.svg" /></a></p>
 <p>Versions following <a href="https://semver.org/">Semantic Versioning</a></p>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Indexima migration schema based on <a href="https://ollycope.com/software/yoyo/latest/">yoyo</a> and <a href="https://pypi.org/project/PyHive/">pyhive</a>.</p>
+<p><a href="https://indexima.com/">Indexima</a> migration schema based on <a href="https://ollycope.com/software/yoyo/latest/">yoyo</a> and <a href="https://pypi.org/project/PyHive/">pyhive</a>.</p>
 <blockquote>
 <p>The little story</p>
 <p>In the land of database migration tool, i have tried:</p>
@@ -630,6 +644,11 @@
 <li>backend ui must start with <code>indexima://</code></li>
 <li>If you have trouble to obtain an hive connection, please read <a href="http://dwgeek.com/guide-connecting-hiveserver2-using-python-pyhive.html/">http://dwgeek.com/guide-connecting-hiveserver2-using-python-pyhive.html/</a></li>
 </ol>
+<p>Note: 
+If you using python in docker, you should install :
+<div class="codehilite"><pre><span></span>apt-get update -qq
+apt-get install -qqy gcc libsasl2-dev libsasl2-2 libsasl2-modules-gssapi-mit 
+</pre></div></p>
 <h2 id="migration">Migration<a class="headerlink" href="#migration" title="Permanent link">&para;</a></h2>
 <p>You could see a complete sample under 'example' folder.</p>
 <h3 id="using-python-client">using python client<a class="headerlink" href="#using-python-client" title="Permanent link">&para;</a></h3>
@@ -644,7 +663,7 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
 <p>Commands:</p>
 <ul>
 <li>show: pring pending migration</li>
-<li>apply: apply ending migration</li>
+<li>apply: apply pending migration</li>
 </ul>
 <h3 id="within-python-code">within python code<a class="headerlink" href="#within-python-code" title="Permanent link">&para;</a></h3>
 <p>If your migrations script are under directory <code>migration</code> folder</p>
@@ -659,7 +678,7 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
     <span class="n">backend</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;indexima://admin:super_password@localhost:10000/default&#39;</span><span class="p">)</span>
 
     <span class="c1"># Read migrations folder</span>
-    <span class="n">migrations</span> <span class="o">=</span> <span class="n">read_migrations</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;migrations&#39;</span><span class="p">))</span>
+    <span class="n">migrations</span> <span class="o">=</span> <span class="n">read_migrations</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;migrations/**/*&#39;</span><span class="p">))</span>
     <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;migrations: {migrations}&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">migrations</span><span class="p">:</span>
         <span class="c1"># apply migration</span>
@@ -667,6 +686,14 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
             <span class="n">backend</span><span class="o">.</span><span class="n">apply_migrations</span><span class="p">(</span><span class="n">backend</span><span class="o">.</span><span class="n">to_apply</span><span class="p">(</span><span class="n">migrations</span><span class="p">))</span>
 </pre></div>
 
+<h3 id="management-table">Management table<a class="headerlink" href="#management-table" title="Permanent link">&para;</a></h3>
+<p>This tool create in your <code>default</code> schema:</p>
+<ul>
+<li>a log table: 'yoyo_log'</li>
+<li>a lock_table: 'yoyo_lock'</li>
+<li>a version table: 'yoyo_version'</li>
+<li>a migration table: 'yoyo_migration'</li>
+</ul>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p><a href="https://geronimo-iia.github.io/yoyo-indexima/license">The MIT License (MIT)</a></p>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
@@ -744,7 +771,7 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
       
     </div>
     
-      <script src="assets/javascripts/application.c648116f.js"></script>
+      <script src="assets/javascripts/application.ac79c3b0.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:"."}})</script>
       

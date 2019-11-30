@@ -38,7 +38,7 @@
         <meta name="lang:search.tokenizer" content="[\s\-]+">
       
       <link rel="shortcut icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.2">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.4.3">
     
     
       
@@ -466,8 +466,6 @@
 <p>Main target: 'docs'</p>
 <ul>
 <li>call 'mkdocs-site':<ul>
-<li>call 'mkdocs-uml': Generate UML Diagram</li>
-<li>call 'mkdocs-api': Generate API documentation</li>
 <li>call 'mkdocs-md': Copy standard document</li>
 <li>Build web site with mkdocs tool</li>
 <li>move generated website content into '/docs' folder in order to expose with github page project</li>
@@ -479,23 +477,6 @@
 <h2 id="extract-from-makefile">Extract from Makefile<a class="headerlink" href="#extract-from-makefile" title="Permanent link">&para;</a></h2>
 <div class="codehilite"><pre><span></span>DOCS_PATH := mkdocs/docs
 SITE_PATH := mkdocs/site
-
-mkdocs-uml: $(DOCS_PATH)/uml ## Generate UML Diagram
-$(DOCS_PATH)/uml: $(MODULES)
-    @ mkdir -p $(DOCS_PATH)/uml
-    @ $(RUN) pyreverse $(PACKAGE) -p $(PACKAGE) -a 1 -f ALL -o png --ignore tests
-    @ mv -f packages_$(PACKAGE).png $(DOCS_PATH)/uml/packages.png
-    @ mv -f classes_$(PACKAGE).png $(DOCS_PATH)/uml/classes.png
-
-
-mkdocs-api: $(DOCS_PATH)/api ## Generate API documentation
-$(DOCS_PATH)/api: $(MODULES)
-    @ mkdir -p $(DOCS_PATH)/api
-    @ cd $(DOCS_PATH)/api; \
-        PYTHONPATH=$(shell pwd); \
-        $(RUN) pydocmd simple $(PACKAGE)+ &gt; index.md
-# Add here all other package generation
-# PYTHONPATH=$(shell pwd) is a workaround to https://github.com/NiklasRosenstein/pydoc-markdown/issues/30
 
 
 MK_FILES = $(DOCS_PATH)/index.md $(DOCS_PATH)/license.md $(DOCS_PATH)/changelog.md $(DOCS_PATH)/code_of_conduct.md
@@ -510,7 +491,7 @@ $(DOCS_PATH)/changelog.md: CHANGELOG.md
 $(DOCS_PATH)/code_of_conduct.md: CODE_OF_CONDUCT.md
     @ cp -f CODE_OF_CONDUCT.md $(DOCS_PATH)/code_of_conduct.md
 
-mkdocs-site: mkdocs/mkdocs.yml mkdocs-uml mkdocs-api mkdocs-md ## Build Documentation Site
+mkdocs-site: mkdocs/mkdocs.yml mkdocs-md ## Build Documentation Site
     @ cd mkdocs; \
       $(RUN) mkdocs build
     @ rm -rf docs/
@@ -607,7 +588,7 @@ docs: mkdocs-site ## Generate documentation and UML
       
     </div>
     
-      <script src="../assets/javascripts/application.c648116f.js"></script>
+      <script src="../assets/javascripts/application.ac79c3b0.js"></script>
       
       <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
       
