@@ -1,4 +1,3 @@
-# file: migrations/0001.create-foo.py
 from yoyo import step
 
 __depends__ = {'0001.create-foo'}
