@@ -1,6 +1,8 @@
+"""Indexima Backend implementation."""
 import time
 from collections import Mapping
 from datetime import datetime
+from typing import Optional
 
 from pyhive import hive
 from yoyo import exceptions, get_backend as yoyo_get_backend, internalmigrations
@@ -13,62 +15,61 @@ from yoyo_indexima import v1, v2
 __all__ = ['IndeximaBackend', 'register_indexima', 'get_backend']
 
 
-epoch = datetime.utcfromtimestamp(0)
-
-
-def dt_to_ms(dt):
-    """Convert a datetime in unix timestamp."""
-    delta = dt - epoch
-    return int(delta.total_seconds() * 1000)
-
-
 class IndeximaBackend(DatabaseBackend):
     """IndeximaBackend implementation.
 
     Stuff:
     - no driver module
     - add 'TABLE' after insert into ...
-    - cast datetime to unix timestamp
+    - cast datetime to indexima timestamp
     - remove transaction manager
     - add commit <<table name>> after each insert/delete...
     """
 
     driver_module = None
 
-    log_table = 'yoyo_log'
-    lock_table = 'yoyo_lock'
-    version_table = 'yoyo_version'
-    migration_table = 'yoyo_migration'
+    log_table: str = 'yoyo_log'
+    lock_table: str = 'yoyo_lock'
+    version_table: str = 'yoyo_version'
+    migration_table: str = 'yoyo_migration'
 
-    mark_migration_sql = (
-        "INSERT INTO TABLE {0.migration_table_quoted} " "VALUES (:migration_hash, :migration_id, :when)"
+    mark_migration_sql: str = (
+        "INSERT INTO TABLE {0.migration_table_quoted} VALUES (:migration_hash, :migration_id, :when)"
     )
-    unmark_migration_sql = "DELETE FROM {0.migration_table_quoted} WHERE " "migration_hash = :migration_hash"
-    applied_migrations_sql = (
-        "SELECT migration_hash, applied_at_utc FROM " "{0.migration_table_quoted} " "ORDER by applied_at_utc"
+    unmark_migration_sql: str = (
+        "DELETE FROM {0.migration_table_quoted} WHERE  migration_hash = :migration_hash"
     )
-    create_test_table_sql = "CREATE TABLE {table_name_quoted} " "(id INT, INDEX(id))"
-    log_migration_sql = (
+    applied_migrations_sql: str = (
+        "SELECT migration_hash, applied_at_utc FROM {0.migration_table_quoted} ORDER by applied_at_utc"
+    )
+    create_test_table_sql: str = "CREATE TABLE {table_name_quoted} (id INT, INDEX(id))"
+    log_migration_sql: str = (
         "INSERT INTO TABLE {0.log_table_quoted} "
         "VALUES (:id, :migration_hash, :migration_id, "
         ":operation, :username, :hostname, :created_at_utc)"
     )
-    create_lock_table_sql = (
-        "CREATE TABLE {0.lock_table_quoted} (" "locked INT, " "ctime TIMESTAMP," "pid INT," "INDEX (locked))"
+    create_lock_table_sql: str = (
+        "CREATE TABLE {0.lock_table_quoted} ("
+        "locked INT, "
+        "ctime TIMESTAMP(SECOND),"
+        "pid INT,"
+        "INDEX (locked))"
     )
 
-    list_tables_sql = "show tables "
+    list_tables_sql: str = "show tables "
 
     _driver = hive
 
-    def connect(self, dburi):
+    def connect(
+        self, dburi, auth: str = 'CUSTOM', default_database: Optional[str] = 'default'
+    ) -> hive.Connection:
         return hive.Connection(
             host=dburi.hostname if dburi.hostname else 'localhost',
             port=dburi.port if dburi.port else 10000,
-            username=dburi.username if dburi.username else '',
-            password=dburi.password if dburi.password else '',
-            database=dburi.database if dburi.database else 'default',
-            auth='CUSTOM',
+            username=dburi.username if dburi.username else None,  # TODO: check default value
+            password=dburi.password if dburi.password else None,  # TODO: check default value
+            database=dburi.database if dburi.database else default_database,
+            auth=auth,
         )
 
     def begin(self):
@@ -102,10 +103,13 @@ class IndeximaBackend(DatabaseBackend):
             raise TypeError("Expected dict or other mapping object")
 
         if params:
-            # here we cast datetime object in timestamp
+            # here we format datetime object in indexima timestamp...
+            # source: https://indexima.com/support/doc/v.1.6/Handling_Data_Spaces/Data_Types.html
+            # format yyyy-mm-dd hh:mm:ss
             for key in params:
                 if isinstance(params[key], datetime):
-                    params[key] = dt_to_ms(params[key])
+                    _dt = params[key]
+                    params[key] = _dt.strftime('%Y-%m-%d %H:%M:%S')
 
         return super(IndeximaBackend, self).execute(sql=sql, params=params)
 
@@ -158,8 +162,12 @@ class IndeximaBackend(DatabaseBackend):
         self.execute("COMMIT {}".format(self.lock_table_quoted))
 
 
-def _get_current_version(backend):
-    """Return the currently installed yoyo migrations schema version."""
+def _get_current_version(backend: DatabaseBackend) -> int:
+    """Return the currently installed yoyo migrations schema version.
+
+    Here we manage the case when no previous version was found.
+
+    """
     tables = set(backend.list_tables())
     version_table = backend.version_table
     if backend.migration_table not in tables:
@@ -178,7 +186,7 @@ def _get_current_version(backend):
         return 0
 
 
-def _mark_schema_version(backend, version):
+def _mark_schema_version(backend: DatabaseBackend, version: int):
     """Mark schema version in version table."""
     assert version in internalmigrations.schema_versions
     if version < internalmigrations.USE_VERSION_TABLE_FROM:
@@ -192,6 +200,11 @@ def _mark_schema_version(backend, version):
 
 def register_indexima():
     """Register all our stuff."""
+
+    # don't resgister twice
+    if IndeximaBackend in BACKENDS:
+        return
+
     # register indexima backend
     BACKENDS['indexima'] = IndeximaBackend
 
@@ -202,7 +215,7 @@ def register_indexima():
     internalmigrations.get_current_version = _get_current_version
 
 
-def get_backend(uri):
+def get_backend(uri) -> DatabaseBackend:
     """Return associated backend."""
     register_indexima()
     return yoyo_get_backend(uri=uri, migration_table=IndeximaBackend.migration_table)
