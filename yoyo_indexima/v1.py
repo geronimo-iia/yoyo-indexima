@@ -1,9 +1,10 @@
 """Define internale migration V1."""
+from yoyo.backends import DatabaseBackend
 
 
-def upgrade(backend):
+def upgrade(backend: DatabaseBackend):
     """Apply V1 migration."""
-    backend.execute("drop table if exists {0.migration_table_quoted}".format(backend))
+    backend.execute(f"drop table if exists {backend.migration_table_quoted}")
     backend.execute(
-        "CREATE TABLE {0.migration_table_quoted} (" "id STRING," "ctime TIMESTAMP, INDEX(id))".format(backend)
+        f"CREATE TABLE {backend.migration_table_quoted} (" "id STRING," "ctime TIMESTAMP(SECOND), INDEX(id))"
     )
