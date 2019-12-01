@@ -6,6 +6,13 @@
 - use inner get_backend function in cli
 - use python3 template String in tool migration script
 - show glob pattern usage
+- refactorisation of internal migration (avoid change internal module state)
+- align source tree to yoyo project
+- add '--force' command option
+- add '--all' command option
+- rewrote cli parser
+- add rollback, mark, unmark, breaklock command
+- add 'dry-run' mode
 
 # 0.0.1 (2019-11-19)
 

@@ -2,7 +2,7 @@
 from pkg_resources import DistributionNotFound, get_distribution
 from yoyo import read_migrations  # noqa
 
-from .backend import get_backend  # noqa
+from .connections import get_backend  # noqa
 
 
 try:

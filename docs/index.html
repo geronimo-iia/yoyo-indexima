@@ -337,6 +337,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#migration-script-template" class="md-nav__link">
+    Migration script template
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -561,6 +568,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#migration-script-template" class="md-nav__link">
+    Migration script template
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -662,9 +676,33 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
 
 <p>Commands:</p>
 <ul>
-<li>show: pring pending migration</li>
-<li>apply: apply pending migration</li>
+<li>show                Show migrations</li>
+<li>apply               Apply migrations</li>
+<li>reapply             Reapply migrations</li>
+<li>rollback            Rollback migrations</li>
+<li>mark                Mark migrations as applied, without running them</li>
+<li>unmark              Unmark applied migrations, without rolling them back</li>
+<li>break-lock          Break migration locks</li>
 </ul>
+<p>Help for apply:</p>
+<div class="codehilite"><pre><span></span>&gt; yoyo_indexima  apply -h
+usage: yoyo_indexima apply <span class="o">[</span>-h<span class="o">]</span> <span class="o">[</span>-s SOURCE<span class="o">]</span> -u URI <span class="o">[</span>-f<span class="o">]</span> <span class="o">[</span>-a<span class="o">]</span> <span class="o">[</span>-r REVISION<span class="o">]</span>
+                           <span class="o">[</span>-d<span class="o">]</span>
+
+optional arguments:
+  -h, --help            show this <span class="nb">help</span> message and <span class="nb">exit</span>
+  -s SOURCE, --source SOURCE
+                        <span class="nb">source</span> path of migration script <span class="o">(</span>default ./migrations<span class="o">)</span>
+  -u URI, --uri URI     backend uri
+  -f, --force           Force apply/rollback of steps even <span class="k">if</span> previous steps
+                        have failed
+  -a, --all             Select all migrations, regardless of whether they have
+                        been previously applied
+  -r REVISION, --revision REVISION
+                        Apply/rollback migration with id REVISION
+  -d, --dry-run         Dry run: no modification will be applied
+</pre></div>
+
 <h3 id="within-python-code">within python code<a class="headerlink" href="#within-python-code" title="Permanent link">&para;</a></h3>
 <p>If your migrations script are under directory <code>migration</code> folder</p>
 <div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
@@ -675,7 +713,7 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
 
     <span class="c1"># obtain IndeximaBackend</span>
-    <span class="n">backend</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;indexima://admin:super_password@localhost:10000/default&#39;</span><span class="p">)</span>
+    <span class="n">backend</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;indexima://admin:super_password@localhost:10000/default?auth=CUSTOM&#39;</span><span class="p">)</span>
 
     <span class="c1"># Read migrations folder</span>
     <span class="n">migrations</span> <span class="o">=</span> <span class="n">read_migrations</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;migrations/**/*&#39;</span><span class="p">))</span>
@@ -694,6 +732,20 @@ usage: yoyo_indexima [-h] [-s SOURCE] -u URI {show,apply}
 <li>a version table: 'yoyo_version'</li>
 <li>a migration table: 'yoyo_migration'</li>
 </ul>
+<h3 id="migration-script-template">Migration script template<a class="headerlink" href="#migration-script-template" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">{message}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">yoyo</span> <span class="kn">import</span> <span class="n">step</span>
+
+<span class="n">__depends__</span> <span class="o">=</span> <span class="p">{{{</span><span class="n">depends</span><span class="p">}}}</span>
+
+<span class="n">steps</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">step</span><span class="p">(</span><span class="s2">&quot;create ...&quot;</span><span class="p">,</span> <span class="s2">&quot;drop ...&quot;</span><span class="p">)</span>
+<span class="p">]</span>
+</pre></div>
+
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p><a href="https://geronimo-iia.github.io/yoyo-indexima/license">The MIT License (MIT)</a></p>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>

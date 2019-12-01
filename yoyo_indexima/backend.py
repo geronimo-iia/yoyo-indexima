@@ -5,14 +5,14 @@ from datetime import datetime
 from typing import Optional
 
 from pyhive import hive
-from yoyo import exceptions, get_backend as yoyo_get_backend, internalmigrations
+from yoyo import exceptions
 from yoyo.backends import DatabaseBackend
-from yoyo.connections import BACKENDS
+from yoyo.connections import DatabaseURI
 
-from yoyo_indexima import v1, v2
+from yoyo_indexima.internalmigrations import needs_upgrading, upgrade
 
 
-__all__ = ['IndeximaBackend', 'register_indexima', 'get_backend']
+__all__ = ['IndeximaBackend']
 
 
 class IndeximaBackend(DatabaseBackend):
@@ -24,6 +24,8 @@ class IndeximaBackend(DatabaseBackend):
     - cast datetime to indexima timestamp
     - remove transaction manager
     - add commit <<table name>> after each insert/delete...
+    - add typing
+    - integrate yoyo internal migration
     """
 
     driver_module = None
@@ -61,15 +63,23 @@ class IndeximaBackend(DatabaseBackend):
     _driver = hive
 
     def connect(
-        self, dburi, auth: str = 'CUSTOM', default_database: Optional[str] = 'default'
+        self,
+        dburi: DatabaseURI,
+        default_auth: Optional[str] = 'CUSTOM',
+        default_database: Optional[str] = 'default',
+        default_port: Optional[int] = 10000,
     ) -> hive.Connection:
+
+        _auth = dburi.args['auth'] if "auth" in dburi.args else default_auth
+        _database = dburi.database if dburi.database else default_database
+
         return hive.Connection(
             host=dburi.hostname if dburi.hostname else 'localhost',
-            port=dburi.port if dburi.port else 10000,
+            port=dburi.port if dburi.port else default_port,
             username=dburi.username if dburi.username else None,  # TODO: check default value
             password=dburi.password if dburi.password else None,  # TODO: check default value
-            database=dburi.database if dburi.database else default_database,
-            auth=auth,
+            database=_database,
+            auth=_auth,
         )
 
     def begin(self):
@@ -77,9 +87,11 @@ class IndeximaBackend(DatabaseBackend):
         self._in_transaction = False
 
     def commit(self):
+        """With indexima we need to commit/rollback a table (with her name)."""
         self._in_transaction = False
 
     def rollback(self):
+        """With indexima we need to commit/rollback a table (with her name)."""
         self.init_connection(self.connection)
         self._in_transaction = False
 
@@ -123,7 +135,7 @@ class IndeximaBackend(DatabaseBackend):
                         "INSERT INTO TABLE {} " "VALUES (1, :when, :pid)".format(self.lock_table_quoted),
                         {'when': datetime.utcnow(), 'pid': pid},
                     )
-                    self.execute("COMMIT {}".format(self.lock_table_quoted))
+                    self.execute(f"COMMIT {self.lock_table_quoted}")
             except self.DatabaseError:
                 if timeout and time.time() > started + timeout:
                     cursor = self.execute("SELECT pid FROM {}".format(self.lock_table_quoted))
@@ -141,81 +153,33 @@ class IndeximaBackend(DatabaseBackend):
             else:
                 return
 
-    def unmark_one(self, migration, log=True):
+    def unmark_one(self, migration, log: Optional[bool] = True):
         self.ensure_internal_schema_updated()
         sql = self.unmark_migration_sql.format(self)
         self.execute(sql, {'migration_hash': migration.hash})
-        self.execute("COMMIT {}".format(self.migration_table_quoted))
+        self.execute(f"COMMIT {self.migration_table_quoted}")
         if log:
             self.log_migration(migration, 'unmark')
 
     def log_migration(self, migration, operation, comment=None):
         super(IndeximaBackend, self).log_migration(migration=migration, operation=operation, comment=comment)
-        self.execute("COMMIT {}".format(self.log_table_quoted))
+        self.execute(f"COMMIT {self.log_table_quoted}")
 
     def _delete_lock_row(self, pid):
         super(IndeximaBackend, self)._delete_lock_row(pid=pid)
-        self.execute("COMMIT {}".format(self.lock_table_quoted))
+        self.execute(f"COMMIT {self.lock_table_quoted}")
 
     def break_lock(self):
         super(IndeximaBackend, self).break_lock()
-        self.execute("COMMIT {}".format(self.lock_table_quoted))
+        self.execute(f"COMMIT {self.lock_table_quoted}")
 
-
-def _get_current_version(backend: DatabaseBackend) -> int:
-    """Return the currently installed yoyo migrations schema version.
-
-    Here we manage the case when no previous version was found.
-
-    """
-    tables = set(backend.list_tables())
-    version_table = backend.version_table
-    if backend.migration_table not in tables:
-        return 0
-    if version_table not in tables:
-        return 1
-    with backend.transaction():
-        cursor = backend.execute(
-            "SELECT max(version) FROM {} ".format(backend.quote_identifier(version_table))
-        )
-        item = cursor.fetchone()
-        if item:
-            version = item[0]
-            assert version in internalmigrations.schema_versions
-            return version
-        return 0
-
-
-def _mark_schema_version(backend: DatabaseBackend, version: int):
-    """Mark schema version in version table."""
-    assert version in internalmigrations.schema_versions
-    if version < internalmigrations.USE_VERSION_TABLE_FROM:
-        return
-    backend.execute(
-        "INSERT INTO TABLE {0.version_table_quoted} VALUES (:version, :when)".format(backend),
-        {'version': version, 'when': datetime.utcnow()},
-    )
-    backend.execute("COMMIT {0.version_table_quoted}".format(backend))
-
-
-def register_indexima():
-    """Register all our stuff."""
-
-    # don't resgister twice
-    if IndeximaBackend in BACKENDS:
-        return
-
-    # register indexima backend
-    BACKENDS['indexima'] = IndeximaBackend
-
-    # override migration schema migration implementation
-    internalmigrations.schema_versions = {0: None, 1: v1, 2: v2}
-    # override migration function
-    internalmigrations.mark_schema_version = _mark_schema_version
-    internalmigrations.get_current_version = _get_current_version
-
-
-def get_backend(uri) -> DatabaseBackend:
-    """Return associated backend."""
-    register_indexima()
-    return yoyo_get_backend(uri=uri, migration_table=IndeximaBackend.migration_table)
+    def ensure_internal_schema_updated(self):
+        """Check and upgrade yoyo's internal schema."""
+        if self._internal_schema_updated:
+            return
+        if needs_upgrading(self):
+            assert not self._in_transaction
+            with self.lock():
+                upgrade(self)
+                self.connection.commit()
+                self._internal_schema_updated = True
