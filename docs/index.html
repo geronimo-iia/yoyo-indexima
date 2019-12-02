@@ -717,7 +717,7 @@ optional arguments:
 
     <span class="c1"># Read migrations folder</span>
     <span class="n">migrations</span> <span class="o">=</span> <span class="n">read_migrations</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">(),</span> <span class="s1">&#39;migrations/**/*&#39;</span><span class="p">))</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s1">&#39;migrations: {migrations}&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;migrations: </span><span class="si">{migrations}</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">migrations</span><span class="p">:</span>
         <span class="c1"># apply migration</span>
         <span class="k">with</span> <span class="n">backend</span><span class="o">.</span><span class="n">lock</span><span class="p">():</span>
