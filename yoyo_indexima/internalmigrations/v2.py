@@ -13,6 +13,7 @@ Change:
 from yoyo.backends import DatabaseBackend
 from yoyo.migrations import get_migration_hash
 
+
 __all__ = ['upgrade']
 
 

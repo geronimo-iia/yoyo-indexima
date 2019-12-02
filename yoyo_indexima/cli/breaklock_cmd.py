@@ -1,5 +1,6 @@
 from yoyo_indexima.cli.common import get_backend_from_args, print_command
 
+
 __all__ = ['create_break_lock_parser', 'break_lock']
 
 

@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import os
 import argparse
 import logging
+import os
+
+from yoyo import ancestors, descendants, read_migrations
 from yoyo.backends import DatabaseBackend
-from yoyo import read_migrations, ancestors, descendants
 from yoyo.migrations import MigrationList
 
 from yoyo_indexima.cli.common import InvalidArgument, get_backend_from_args, print_command
+
 
 logger = logging.getLogger('yoyo_indexima.cli')
 
