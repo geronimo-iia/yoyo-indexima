@@ -1,4 +1,4 @@
-# 0.1.0 (soon)
+# 0.1.0 (2019-12-2)
 
 - fix indexima Timestamp column format
 - add mypi typing
