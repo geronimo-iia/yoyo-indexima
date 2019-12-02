@@ -1,10 +1,10 @@
 """Define python client command."""
 import logging
 
-from yoyo_indexima.logger import init_root_logger
 from yoyo_indexima.cli.common import InvalidArgument
-
 from yoyo_indexima.cli.parser import create_parser
+from yoyo_indexima.logger import init_root_logger
+
 
 logger = logging.getLogger('yoyo_indexima.cli')
 

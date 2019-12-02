@@ -1,7 +1,8 @@
 """Define parser."""
 import argparse
 
-from yoyo_indexima.cli import migration_cmd, breaklock_cmd
+from yoyo_indexima.cli import breaklock_cmd, migration_cmd
+
 
 __all__ = ['create_parser']
 

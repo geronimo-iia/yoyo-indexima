@@ -10,19 +10,16 @@ Changes:
 """
 
 from datetime import datetime
-from yoyo.backends import DatabaseBackend
 from typing import Callable, Dict, Optional
+
+from yoyo.backends import DatabaseBackend
 
 from .v1 import upgrade as upgrade_v1
 from .v2 import upgrade as update_v2
 
 
 #: Mapping of {schema version number: module}
-SCHEMA_VERSIONS: Dict[str, Callable[[DatabaseBackend], None]] = {
-    0: None,
-    1: upgrade_v1,
-    2: update_v2,
-}
+SCHEMA_VERSIONS: Dict[str, Callable[[DatabaseBackend], None]] = {0: None, 1: upgrade_v1, 2: update_v2}
 
 
 #: First schema version that supports the yoyo_versions table

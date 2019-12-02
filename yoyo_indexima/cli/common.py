@@ -1,5 +1,6 @@
 """Define utilities."""
 import logging
+
 from yoyo.backends import DatabaseBackend
 
 from yoyo_indexima.connections import get_backend
