@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 
 from pyhive import hive
+from thrift_sasl import TSaslClientTransport
 from yoyo import exceptions
 from yoyo.backends import DatabaseBackend
 from yoyo.connections import DatabaseURI
@@ -62,6 +63,9 @@ class IndeximaBackend(DatabaseBackend):
 
     _driver = hive
 
+    _configuration = None
+    _thrift_transport: TSaslClientTransport = None
+
     def connect(
         self,
         dburi: DatabaseURI,
@@ -80,7 +84,21 @@ class IndeximaBackend(DatabaseBackend):
             password=dburi.password if dburi.password else None,  # TODO: check default value
             database=_database,
             auth=_auth,
+            configurations=self._configuration,
+            thrift_transport=self._thrift_transport,
         )
+
+    def set_hive_configuration(self, configuration):
+        """Set hive configuration option.
+
+        # Parameters
+            configuration (dict): A dictionary of Hive settings (functionally same as the `set` command)
+        """
+        self._configuration = configuration
+
+    def set_hive_thrift_transport(self, thrift_transport: TSaslClientTransport):
+        """Set thrift_transport instance."""
+        self._thrift_transport = thrift_transport
 
     def begin(self):
         """Indexima is always in a transaction, and has no "BEGIN" statement."""

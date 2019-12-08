@@ -1,3 +1,8 @@
+# 0.1.1 (2019-12-3)
+
+- add a way to set hive configuration and TSaslClientTransport instance
+- refactor register_backend
+
 # 0.1.0 (2019-12-2)
 
 - fix indexima Timestamp column format

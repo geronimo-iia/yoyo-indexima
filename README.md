@@ -159,6 +159,51 @@ steps = [
 ]
 ```
 
+### Configure hive connection
+
+In python script, on ``IndeximaBackend``instance, you could use:
+
+ - ```set_hive_configuration```: A dictionary of Hive settings (functionally same as the `set` command)
+ - ```set_hive_thrift_transport```: an instance of TSaslClientTransport
+
+As see in https://github.com/dropbox/PyHive/issues/162, you could do things like that:
+
+```python
+import sasl
+from thrift_sasl import TSaslClientTransport
+from thrift.transport.TSocket import TSocket
+
+
+def create_hive_plain_transport(host, port, username, password, timeout=60):
+    socket = TSocket(host, port)
+    socket.setTimeout(timeout * 1000)
+
+    sasl_auth = 'PLAIN'
+
+    def sasl_factory():
+        sasl_client = sasl.Client()
+        sasl_client.setAttr('host', host)
+        sasl_client.setAttr('username', username)
+        sasl_client.setAttr('password', password)
+        sasl_client.init()
+        return sasl_client
+
+    return TSaslClientTransport(sasl_factory, sasl_auth, socket)
+
+
+backend = get_backend('indexima://admin:super_password@localhost:10000/default?auth=CUSTOM')
+backend.set_hive_thrift_transport(create_hive_plain_transport(...))
+
+```
+
+### Extends IndeximaBackend
+
+If you extends ```IndeximaBackend``` you could register your classes, in the function:
+```get_backend(uri: str, backend=IndeximaBackend) -> DatabaseBackend:```
+
+TODO: add a client parameter to specify full class name in cli.
+
+
 ## License
 
 [The MIT License (MIT)](https://geronimo-iia.github.io/yoyo-indexima/license)
