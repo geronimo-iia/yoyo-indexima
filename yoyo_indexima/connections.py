@@ -14,21 +14,17 @@ from yoyo.connections import BACKENDS
 from .backend import IndeximaBackend
 
 
-__all__ = ['get_backend']
+__all__ = ['get_backend', 'register_backend', 'INDEXIMA_BACKEND_KEY']
+
+INDEXIMA_BACKEND_KEY = 'indexima'
 
 
-def register_indexima():
-    """Register all our stuff."""
-
-    # don't resgister twice
-    if IndeximaBackend in BACKENDS:
-        return
-
-    # register indexima backend
-    BACKENDS['indexima'] = IndeximaBackend
+def register_backend(name: str, backend: DatabaseBackend):
+    """Register specified backend."""
+    BACKENDS[name] = backend
 
 
-def get_backend(uri: str) -> DatabaseBackend:
+def get_backend(uri: str, backend=IndeximaBackend) -> DatabaseBackend:
     """Return associated backend."""
-    register_indexima()
+    register_backend(name=INDEXIMA_BACKEND_KEY, backend=backend)
     return yoyo_get_backend(uri=uri, migration_table=IndeximaBackend.migration_table)
