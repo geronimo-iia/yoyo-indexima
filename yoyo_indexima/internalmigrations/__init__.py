@@ -18,8 +18,12 @@ from .v1 import upgrade as upgrade_v1
 from .v2 import upgrade as update_v2
 
 
+def upgrade_v0(backend: DatabaseBackend):
+    pass
+
+
 #: Mapping of {schema version number: module}
-SCHEMA_VERSIONS: Dict[str, Callable[[DatabaseBackend], None]] = {0: None, 1: upgrade_v1, 2: update_v2}
+SCHEMA_VERSIONS: Dict[str, Callable[[DatabaseBackend], None]] = {0: upgrade_v0, 1: upgrade_v1, 2: update_v2}
 
 
 #: First schema version that supports the yoyo_versions table
@@ -58,7 +62,7 @@ def upgrade(backend: DatabaseBackend, version: Optional[int] = None):
     with backend.transaction():
         while current_version < desired_version:
             next_version = current_version + 1
-            SCHEMA_VERSIONS[next_version].upgrade(backend)
+            SCHEMA_VERSIONS[next_version](backend)
             current_version = next_version
             mark_schema_version(backend, current_version)
 
