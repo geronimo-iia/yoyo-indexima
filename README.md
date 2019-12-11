@@ -215,7 +215,6 @@ See [Contributing](https://geronimo-iia.github.io/yoyo-indexima/contributing)
 
 ## Next step
 
-- production usage in order to see how this tool made the job
-- more documentation in code
-- purpose few change in 'yoyo' like set all SQL command on Backend class
-- ...
+- apply socket timeout and serialization encoding
+- release a v1.0.0
+  
