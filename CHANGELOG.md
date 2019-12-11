@@ -1,3 +1,8 @@
+# 0.1.3 (2019-12-11)
+
+- fix internal upgrade
+- fix hive configuration
+
 # 0.1.1 (2019-12-3)
 
 - add a way to set hive configuration and TSaslClientTransport instance
