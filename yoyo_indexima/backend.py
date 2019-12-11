@@ -84,7 +84,7 @@ class IndeximaBackend(DatabaseBackend):
             password=dburi.password if dburi.password else None,  # TODO: check default value
             database=_database,
             auth=_auth,
-            configurations=self._configuration,
+            configuration=self._configuration,
             thrift_transport=self._thrift_transport,
         )
 

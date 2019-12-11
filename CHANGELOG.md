@@ -1,6 +1,7 @@
-# 0.1.2 (2019-12-11)
+# 0.1.3 (2019-12-11)
 
 - fix internal upgrade
+- fix hive configuration
 
 # 0.1.1 (2019-12-3)
 
