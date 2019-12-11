@@ -344,6 +344,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#configure-hive-connection" class="md-nav__link">
+    Configure hive connection
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extends-indeximabackend" class="md-nav__link">
+    Extends IndeximaBackend
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -575,6 +589,20 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#configure-hive-connection" class="md-nav__link">
+    Configure hive connection
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#extends-indeximabackend" class="md-nav__link">
+    Extends IndeximaBackend
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -746,16 +774,51 @@ optional arguments:
 <span class="p">]</span>
 </pre></div>
 
+<h3 id="configure-hive-connection">Configure hive connection<a class="headerlink" href="#configure-hive-connection" title="Permanent link">&para;</a></h3>
+<p>In python script, on <code>IndeximaBackend</code>instance, you could use:</p>
+<ul>
+<li><code>set_hive_configuration</code>: A dictionary of Hive settings (functionally same as the <code>set</code> command)</li>
+<li><code>set_hive_thrift_transport</code>: an instance of TSaslClientTransport</li>
+</ul>
+<p>As see in <a href="https://github.com/dropbox/PyHive/issues/162">https://github.com/dropbox/PyHive/issues/162</a>, you could do things like that:</p>
+<div class="codehilite"><pre><span></span><span class="kn">import</span> <span class="nn">sasl</span>
+<span class="kn">from</span> <span class="nn">thrift_sasl</span> <span class="kn">import</span> <span class="n">TSaslClientTransport</span>
+<span class="kn">from</span> <span class="nn">thrift.transport.TSocket</span> <span class="kn">import</span> <span class="n">TSocket</span>
+
+
+<span class="k">def</span> <span class="nf">create_hive_plain_transport</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">username</span><span class="p">,</span> <span class="n">password</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">60</span><span class="p">):</span>
+    <span class="n">socket</span> <span class="o">=</span> <span class="n">TSocket</span><span class="p">(</span><span class="n">host</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+    <span class="n">socket</span><span class="o">.</span><span class="n">setTimeout</span><span class="p">(</span><span class="n">timeout</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">)</span>
+
+    <span class="n">sasl_auth</span> <span class="o">=</span> <span class="s1">&#39;PLAIN&#39;</span>
+
+    <span class="k">def</span> <span class="nf">sasl_factory</span><span class="p">():</span>
+        <span class="n">sasl_client</span> <span class="o">=</span> <span class="n">sasl</span><span class="o">.</span><span class="n">Client</span><span class="p">()</span>
+        <span class="n">sasl_client</span><span class="o">.</span><span class="n">setAttr</span><span class="p">(</span><span class="s1">&#39;host&#39;</span><span class="p">,</span> <span class="n">host</span><span class="p">)</span>
+        <span class="n">sasl_client</span><span class="o">.</span><span class="n">setAttr</span><span class="p">(</span><span class="s1">&#39;username&#39;</span><span class="p">,</span> <span class="n">username</span><span class="p">)</span>
+        <span class="n">sasl_client</span><span class="o">.</span><span class="n">setAttr</span><span class="p">(</span><span class="s1">&#39;password&#39;</span><span class="p">,</span> <span class="n">password</span><span class="p">)</span>
+        <span class="n">sasl_client</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">sasl_client</span>
+
+    <span class="k">return</span> <span class="n">TSaslClientTransport</span><span class="p">(</span><span class="n">sasl_factory</span><span class="p">,</span> <span class="n">sasl_auth</span><span class="p">,</span> <span class="n">socket</span><span class="p">)</span>
+
+
+<span class="n">backend</span> <span class="o">=</span> <span class="n">get_backend</span><span class="p">(</span><span class="s1">&#39;indexima://admin:super_password@localhost:10000/default?auth=CUSTOM&#39;</span><span class="p">)</span>
+<span class="n">backend</span><span class="o">.</span><span class="n">set_hive_thrift_transport</span><span class="p">(</span><span class="n">create_hive_plain_transport</span><span class="p">(</span><span class="o">...</span><span class="p">))</span>
+</pre></div>
+
+<h3 id="extends-indeximabackend">Extends IndeximaBackend<a class="headerlink" href="#extends-indeximabackend" title="Permanent link">&para;</a></h3>
+<p>If you extends <code>IndeximaBackend</code> you could register your classes, in the function:
+<code>get_backend(uri: str, backend=IndeximaBackend) -&gt; DatabaseBackend:</code></p>
+<p>TODO: add a client parameter to specify full class name in cli.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p><a href="https://geronimo-iia.github.io/yoyo-indexima/license">The MIT License (MIT)</a></p>
 <h2 id="contributing">Contributing<a class="headerlink" href="#contributing" title="Permanent link">&para;</a></h2>
 <p>See <a href="https://geronimo-iia.github.io/yoyo-indexima/contributing">Contributing</a></p>
 <h2 id="next-step">Next step<a class="headerlink" href="#next-step" title="Permanent link">&para;</a></h2>
 <ul>
-<li>production usage in order to see how this tool made the job</li>
-<li>more documentation in code</li>
-<li>purpose few change in 'yoyo' like set all SQL command on Backend class</li>
-<li>...</li>
+<li>apply socket timeout and serialization encoding</li>
+<li>release a v1.0.0</li>
 </ul>
                 
                   
